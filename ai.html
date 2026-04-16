@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🥟 Dumpling Dash</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=ZCOOL+XiaoWei&display=swap');
+
+  :root {
+    --red: #c0392b;
+    --gold: #f39c12;
+    --dark-red: #7b1010;
+    --bg: #1a0a00;
+    --paper: #fdf3e3;
+    --ink: #2c1810;
+    --jade: #00a86b;
+    --sky: #87ceeb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Noto Serif SC', serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Decorative background lanterns */
+  .bg-pattern {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(180,30,30,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(180,100,0,0.12) 0%, transparent 50%),
+      repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(255,200,0,0.02) 30px, rgba(255,200,0,0.02) 31px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #gameWrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h1 {
+    font-family: 'ZCOOL XiaoWei', serif;
+    color: var(--gold);
+    font-size: 2rem;
+    text-shadow: 0 0 20px rgba(243,156,18,0.6), 2px 2px 0 var(--dark-red);
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+  }
+
+  #hud {
+    display: flex;
+    gap: 30px;
+    color: var(--paper);
+    font-size: 1rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(243,156,18,0.3);
+    border-radius: 6px;
+    padding: 6px 20px;
+  }
+  #hud span { color: var(--gold); font-weight: bold; margin-left: 6px; }
+
+  canvas {
+    border: 3px solid var(--gold);
+    border-radius: 4px;
+    box-shadow: 0 0 40px rgba(192,57,43,0.5), inset 0 0 20px rgba(0,0,0,0.5);
+    display: block;
+    background: #0d0500;
+  }
+
+  #controls {
+    color: rgba(253,243,227,0.5);
+    font-size: 0.75rem;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  /* Overlay screens */
+  #overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  #overlay.show { opacity: 1; pointer-events: all; }
+
+  #overlay.win { background: rgba(0,30,20,0.92); }
+  #overlay.lose { background: rgba(10,10,30,0.92); }
+
+  .overlay-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+  .overlay-sub {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  .restart-btn {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 36px;
+    font-size: 1.1rem;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(243,156,18,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .restart-btn:hover { transform: scale(1.05); box-shadow: 0 6px 25px rgba(243,156,18,0.6); }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 12px; height: 12px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 101;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+  }
+
+  /* Rain */
+  .raindrop {
+    position: fixed;
+    width: 2px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 101;
+    background: linear-gradient(to bottom, transparent, rgba(150,200,255,0.8));
+    animation: rainFall linear infinite;
+  }
+  @keyframes rainFall {
+    0% { transform: translateY(-20px); opacity: 0.7; }
+    100% { transform: translateY(110vh); opacity: 0.3; }
+  }
+
+  /* Clouds */
+  .cloud {
+    position: fixed;
+    z-index: 102;
+    pointer-events: none;
+    font-size: 4rem;
+    animation: cloudDrift linear forwards;
+    opacity: 0.85;
+  }
+  @keyframes cloudDrift {
+    0% { transform: translateX(-200px); opacity: 0; }
+    10% { opacity: 0.85; }
+    90% { opacity: 0.85; }
+    100% { transform: translateX(110vw); opacity: 0; }
+  }
+
+  #startScreen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10,3,0,0.95);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity 0.5s;
+  }
+  #startScreen h1 { font-size: 3rem; }
+  #startScreen p { color: var(--paper); opacity: 0.8; text-align: center; max-width: 380px; font-size: 0.95rem; line-height: 1.6; }
+  .legend { display: flex; gap: 24px; margin: 10px 0; }
+  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--paper); font-size: 0.85rem; }
+  .legend-item span.icon { font-size: 2rem; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<!-- Start Screen -->
+<div id="startScreen">
+  <h1>🥟 Dumpling Dash</h1>
+  <div class="legend">
+    <div class="legend-item"><span class="icon">🥢</span>You</div>
+    <div class="legend-item"><span class="icon">🥟</span>Collect</div>
+    <div class="legend-item"><span class="icon">🐉</span>Avoid</div>
+  </div>
+  <p>Guide your chopsticks through the maze, eat all the dumplings, and avoid the dragons! Use arrow keys or WASD to move.</p>
+  <button class="restart-btn" onclick="startGame()">Begin Your Journey 🎋</button>
+</div>
+
+<!-- Game -->
+<div id="gameWrapper">
+  <h1>🥟 Dumpling Dash</h1>
+  <div id="hud">
+    <div>Score:<span id="scoreVal">0</span></div>
+    <div>Lives:<span id="livesVal">3</span></div>
+    <div>Level:<span id="levelVal">1</span></div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="controls">Arrow Keys / WASD to move &nbsp;|&nbsp; Eat all dumplings to win!</div>
+</div>
+
+<!-- Win/Lose Overlay -->
+<div id="overlay">
+  <div class="overlay-title" id="overlayTitle"></div>
+  <div class="overlay-sub" id="overlaySub"></div>
+  <button class="restart-btn" id="restartBtn">Play Again 🎋</button>
+</div>
+
+<script>
+// ===================== GAME SETUP =====================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const CELL = 24;
+const COLS = 21;
+const ROWS = 21;
+
+canvas.width = COLS * CELL;
+canvas.height = ROWS * CELL;
+
+// Maze: 1=wall, 0=dot, 2=empty(no dot), 3=power pellet
+const BASE_MAZE = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+  [1,3,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,3,1],
+  [1,0,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1],
+  [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  [1,1,1,1,0,1,1,1,2,2,1,2,2,1,1,1,0,1,1,1,1],
+  [2,2,2,1,0,1,2,2,2,2,2,2,2,2,2,1,0,1,2,2,2],
+  [1,1,1,1,0,1,2,1,1,2,2,2,1,1,2,1,0,1,1,1,1],
+  [2,2,2,2,0,2,2,1,2,2,2,2,2,1,2,2,0,2,2,2,2],
+  [1,1,1,1,0,1,2,1,1,1,1,1,1,1,2,1,0,1,1,1,1],
+  [2,2,2,1,0,1,2,2,2,2,2,2,2,2,2,1,0,1,2,2,2],
+  [1,1,1,1,0,1,2,1,1,1,1,1,1,1,2,1,0,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,3,0,1,0,0,0,0,0,0,2,0,0,0,0,0,0,1,0,3,1],
+  [1,1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,1],
+  [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  [1,0,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+
+let maze, score, lives, level, gameRunning, gameOver;
+let player, ghosts, animFrame;
+let powerMode = false, powerTimer = 0;
+const POWER_DURATION = 300; // frames
+
+// Emoji rendering helper
+function drawEmoji(emoji, x, y, size) {
+  ctx.save();
+  ctx.font = `${size}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, x, y);
+  ctx.restore();
+}
+
+function initMaze() {
+  maze = BASE_MAZE.map(row => [...row]);
+}
+
+function countDots() {
+  let n = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (maze[r][c] === 0 || maze[r][c] === 3) n++;
+  return n;
+}
+
+function initPlayer() {
+  player = {
+    col: 10, row: 16,
+    dx: 0, dy: 0,
+    nextDx: 0, nextDy: 0,
+    moving: false,
+    animFrame: 0,
+    angle: 0
+  };
+}
+
+const GHOST_COLORS = ['#e74c3c','#e67e22','#9b59b6','#1abc9c'];
+const GHOST_EMOJIS = ['🐉','🐲','🦕','🦎'];
+
+function initGhosts() {
+  ghosts = [
+    { col: 9, row: 9, dx: 1, dy: 0, color: GHOST_COLORS[0], emoji: '🐉', scared: false, scatterTimer: 0 },
+    { col: 10, row: 9, dx: -1, dy: 0, color: GHOST_COLORS[1], emoji: '🐲', scared: false, scatterTimer: 60 },
+    { col: 11, row: 9, dx: 0, dy: 1, color: GHOST_COLORS[2], emoji: '🦕', scared: false, scatterTimer: 120 },
+    { col: 10, row: 10, dx: 0, dy: -1, color: GHOST_COLORS[3], emoji: '🦎', scared: false, scatterTimer: 180 },
+  ];
+}
+
+function canMove(col, row, dc, dr) {
+  const nc = col + dc, nr = row + dr;
+  if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) {
+    // tunnel wrap
+    return true;
+  }
+  return maze[nr][nc] !== 1;
+}
+
+function wrapPos(col, row) {
+  if (col < 0) col = COLS - 1;
+  if (col >= COLS) col = 0;
+  if (row < 0) row = ROWS - 1;
+  if (row >= ROWS) row = 0;
+  return { col, row };
+}
+
+// ===================== INPUT =====================
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+  // Queue direction
+  if (!gameRunning) return;
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { player.nextDx = 0; player.nextDy = -1; }
+  if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { player.nextDx = 0; player.nextDy = 1; }
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { player.nextDx = -1; player.nextDy = 0; }
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { player.nextDx = 1; player.nextDy = 0; }
+});
+
+// Mobile swipe
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, {passive:true});
+canvas.addEventListener('touchend', e => {
+  if (!gameRunning) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 20) { player.nextDx = 1; player.nextDy = 0; }
+    else if (dx < -20) { player.nextDx = -1; player.nextDy = 0; }
+  } else {
+    if (dy > 20) { player.nextDx = 0; player.nextDy = 1; }
+    else if (dy < -20) { player.nextDx = 0; player.nextDy = -1; }
+  }
+}, {passive:true});
+
+// ===================== GAME LOGIC =====================
+let tickCounter = 0;
+const PLAYER_SPEED = 4; // frames per cell
+const GHOST_SPEED = 5;
+
+function updatePlayer() {
+  if (tickCounter % PLAYER_SPEED !== 0) return;
+
+  // Try queued direction
+  if (canMove(player.col, player.row, player.nextDx, player.nextDy)) {
+    player.dx = player.nextDx;
+    player.dy = player.nextDy;
+  }
+  // Move
+  if (canMove(player.col, player.row, player.dx, player.dy)) {
+    player.col += player.dx;
+    player.row += player.dy;
+    const w = wrapPos(player.col, player.row);
+    player.col = w.col; player.row = w.row;
+  }
+
+  // Eat
+  const cell = maze[player.row][player.col];
+  if (cell === 0) {
+    maze[player.row][player.col] = 2;
+    score += 10;
+  } else if (cell === 3) {
+    maze[player.row][player.col] = 2;
+    score += 50;
+    powerMode = true;
+    powerTimer = POWER_DURATION;
+    ghosts.forEach(g => g.scared = true);
+  }
+
+  // Angle
+  if (player.dx === 1) player.angle = 0;
+  else if (player.dx === -1) player.angle = Math.PI;
+  else if (player.dy === -1) player.angle = -Math.PI/2;
+  else if (player.dy === 1) player.angle = Math.PI/2;
+
+  player.animFrame = (player.animFrame + 1) % 8;
+
+  updateHUD();
+}
+
+function updateGhosts() {
+  if (tickCounter % GHOST_SPEED !== 0) return;
+  const dirs = [{dc:1,dr:0},{dc:-1,dr:0},{dc:0,dr:1},{dc:0,dr:-1}];
+
+  ghosts.forEach(g => {
+    if (g.scared && !powerMode) g.scared = false;
+
+    // Choose direction
+    const possible = dirs.filter(d => {
+      const nc = g.col + d.dc, nr = g.row + d.dr;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return false;
+      if (maze[nr][nc] === 1) return false;
+      // Don't reverse unless only option
+      return true;
+    });
+
+    // Remove reverse unless only option
+    const noReverse = possible.filter(d => !(d.dc === -g.dx && d.dr === -g.dy));
+    const choices = noReverse.length > 0 ? noReverse : possible;
+
+    if (choices.length === 0) return;
+
+    let chosen;
+    if (g.scared) {
+      // Random when scared
+      chosen = choices[Math.floor(Math.random() * choices.length)];
+    } else if (Math.random() < 0.7) {
+      // Chase player
+      const target = { c: player.col, r: player.row };
+      chosen = choices.reduce((best, d) => {
+        const nc = g.col + d.dc, nr = g.row + d.dr;
+        const dist = (nc - target.c)**2 + (nr - target.r)**2;
+        const bd = (g.col + best.dc - target.c)**2 + (g.row + best.dr - target.r)**2;
+        return dist < bd ? d : best;
+      });
+    } else {
+      chosen = choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    g.dx = chosen.dc; g.dy = chosen.dr;
+    g.col += g.dx; g.row += g.dy;
+    const w = wrapPos(g.col, g.row);
+    g.col = w.col; g.row = w.row;
+  });
+}
+
+function checkCollisions() {
+  for (const g of ghosts) {
+    if (g.col === player.col && g.row === player.row) {
+      if (g.scared) {
+        // Eat ghost
+        g.col = 10; g.row = 10;
+        g.scared = false;
+        score += 200;
+      } else {
+        lives--;
+        updateHUD();
+        if (lives <= 0) {
+          triggerLose();
+          return;
+        } else {
+          // Reset positions
+          initPlayer();
+          initGhosts();
+        }
+      }
+    }
+  }
+}
+
+function checkWin() {
+  if (countDots() === 0) {
+    triggerWin();
+  }
+}
+
+function updatePower() {
+  if (powerMode) {
+    powerTimer--;
+    if (powerTimer <= 0) {
+      powerMode = false;
+      ghosts.forEach(g => g.scared = false);
+    }
+  }
+}
+
+// ===================== DRAW =====================
+function drawMaze() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = c * CELL, y = r * CELL;
+      const cell = maze[r][c];
+
+      if (cell === 1) {
+        // Wall — ornate dark red with gold edge
+        ctx.fillStyle = '#1a0000';
+        ctx.fillRect(x, y, CELL, CELL);
+        ctx.strokeStyle = '#6b1a1a';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x+1, y+1, CELL-2, CELL-2);
+        // Inner glow line
+        ctx.strokeStyle = 'rgba(192,57,43,0.4)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(x+2, y+2, CELL-4, CELL-4);
+      } else if (cell === 0) {
+        // Dot (dumpling)
+        drawEmoji('🥟', x + CELL/2, y + CELL/2, CELL * 0.65);
+      } else if (cell === 3) {
+        // Power pellet — big dumpling with glow
+        ctx.save();
+        ctx.shadowColor = 'rgba(243,156,18,0.9)';
+        ctx.shadowBlur = 12;
+        const pulse = 0.75 + 0.25 * Math.sin(tickCounter * 0.1);
+        drawEmoji('🥟', x + CELL/2, y + CELL/2, CELL * pulse);
+        ctx.restore();
+      }
+    }
+  }
+}
+
+function drawPlayer() {
+  const x = player.col * CELL + CELL/2;
+  const y = player.row * CELL + CELL/2;
+
+  // Animate chopsticks "chewing"
+  const chew = Math.sin(tickCounter * 0.4) * 0.15;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(player.angle);
+
+  // Draw chopsticks
+  ctx.strokeStyle = '#c8a060';
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+
+  const spread = 8 + chew * 12;
+  // Top chopstick
+  ctx.save();
+  ctx.rotate(-spread * 0.08);
+  ctx.beginPath();
+  ctx.moveTo(-CELL * 0.5, -2);
+  ctx.lineTo(CELL * 0.5, -spread);
+  ctx.stroke();
+  ctx.restore();
+
+  // Bottom chopstick
+  ctx.save();
+  ctx.rotate(spread * 0.08);
+  ctx.beginPath();
+  ctx.moveTo(-CELL * 0.5, 2);
+  ctx.lineTo(CELL * 0.5, spread);
+  ctx.stroke();
+  ctx.restore();
+
+  // Tip dots
+  ctx.fillStyle = '#f39c12';
+  ctx.beginPath(); ctx.arc(CELL*0.45, -spread + 1, 2.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(CELL*0.45, spread - 1, 2.5, 0, Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawGhosts() {
+  ghosts.forEach((g, i) => {
+    const x = g.col * CELL + CELL/2;
+    const y = g.row * CELL + CELL/2;
+
+    const bob = Math.sin(tickCounter * 0.15 + i) * 2;
+
+    ctx.save();
+    if (g.scared) {
+      // Scared — blue tint flash
+      const flash = powerTimer < 100 && Math.floor(tickCounter / 8) % 2 === 0;
+      ctx.globalAlpha = flash ? 0.5 : 0.9;
+      ctx.filter = 'hue-rotate(200deg) saturate(0.5)';
+    }
+    ctx.shadowColor = g.scared ? 'rgba(50,100,255,0.6)' : 'rgba(220,50,50,0.7)';
+    ctx.shadowBlur = 10;
+    drawEmoji(g.scared ? '😨' : g.emoji, x, y + bob, CELL * 1.1);
+    ctx.restore();
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background grid lines
+  ctx.strokeStyle = 'rgba(60,20,10,0.3)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= COLS; i++) {
+    ctx.beginPath(); ctx.moveTo(i*CELL, 0); ctx.lineTo(i*CELL, canvas.height); ctx.stroke();
+  }
+  for (let i = 0; i <= ROWS; i++) {
+    ctx.beginPath(); ctx.moveTo(0, i*CELL); ctx.lineTo(canvas.width, i*CELL); ctx.stroke();
+  }
+
+  drawMaze();
+  drawGhosts();
+  drawPlayer();
+}
+
+function updateHUD() {
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('livesVal').textContent = '🥢'.repeat(lives);
+  document.getElementById('levelVal').textContent = level;
+}
+
+// ===================== GAME LOOP =====================
+function gameLoop() {
+  if (!gameRunning) return;
+  tickCounter++;
+  updatePower();
+  updatePlayer();
+  updateGhosts();
+  checkCollisions();
+  if (gameRunning) checkWin();
+  if (gameRunning) {
+    draw();
+    animFrame = requestAnimationFrame(gameLoop);
+  }
+}
+
+function startGame() {
+  document.getElementById('startScreen').style.opacity = '0';
+  setTimeout(() => document.getElementById('startScreen').style.display = 'none', 500);
+  resetGame();
+}
+
+function resetGame() {
+  cancelAnimationFrame(animFrame);
+  clearEffects();
+  score = 0; lives = 3; level = 1;
+  gameRunning = true; gameOver = false;
+  tickCounter = 0; powerMode = false; powerTimer = 0;
+  initMaze();
+  initPlayer();
+  initGhosts();
+  updateHUD();
+  hideOverlay();
+  draw();
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+// ===================== WIN / LOSE =====================
+function triggerWin() {
+  gameRunning = false;
+  showOverlay('win', '🥟 You Win! 🥟', 'All dumplings eaten! The dragons flee in shame!');
+  spawnConfetti();
+  setTimeout(() => { resetGame(); }, 5000);
+}
+
+function triggerLose() {
+  gameRunning = false;
+  showOverlay('lose', '🐉 The Dragons Have Won', 'The chopsticks were no match for the ancient dragons...');
+  spawnRain();
+  spawnClouds();
+  setTimeout(() => { resetGame(); }, 5000);
+}
+
+function showOverlay(type, title, sub) {
+  const overlay = document.getElementById('overlay');
+  overlay.className = 'show ' + type;
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayTitle').style.color = type === 'win' ? '#f1c40f' : '#aaccff';
+  document.getElementById('overlaySub').textContent = sub;
+}
+
+function hideOverlay() {
+  const overlay = document.getElementById('overlay');
+  overlay.className = '';
+}
+
+document.getElementById('restartBtn').addEventListener('click', resetGame);
+
+// ===================== EFFECTS =====================
+let effectEls = [];
+
+function clearEffects() {
+  effectEls.forEach(el => el.remove());
+  effectEls = [];
+}
+
+function spawnConfetti() {
+  const colors = ['#f1c40f','#e74c3c','#2ecc71','#e67e22','#9b59b6','#1abc9c','#ff69b4','#fff'];
+  const symbols = ['🥟','✨','🎊','🎉','⭐','🌸'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.classList.add('confetti-piece');
+    // Random: colored square or emoji
+    if (Math.random() > 0.4) {
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.width = (8 + Math.random() * 12) + 'px';
+      el.style.height = (8 + Math.random() * 12) + 'px';
+    } else {
+      el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      el.style.background = 'none';
+      el.style.fontSize = '1.2rem';
+      el.style.width = 'auto'; el.style.height = 'auto';
+    }
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.top = '-30px';
+    const dur = 2 + Math.random() * 3;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (Math.random() * 1.5) + 's';
+    document.body.appendChild(el);
+    effectEls.push(el);
+    setTimeout(() => el.remove(), (dur + 2) * 1000);
+  }
+}
+
+function spawnRain() {
+  for (let i = 0; i < 60; i++) {
+    const drop = document.createElement('div');
+    drop.classList.add('raindrop');
+    drop.style.left = (Math.random() * 100) + 'vw';
+    drop.style.top = '-20px';
+    const h = 15 + Math.random() * 25;
+    drop.style.height = h + 'px';
+    const dur = 0.6 + Math.random() * 0.8;
+    drop.style.animationDuration = dur + 's';
+    drop.style.animationDelay = (Math.random() * 2) + 's';
+    document.body.appendChild(drop);
+    effectEls.push(drop);
+  }
+}
+
+function spawnClouds() {
+  const cloudEmojis = ['☁️','🌧️','⛈️','🌩️'];
+  for (let i = 0; i < 6; i++) {
+    const cloud = document.createElement('div');
+    cloud.classList.add('cloud');
+    cloud.textContent = cloudEmojis[Math.floor(Math.random() * cloudEmojis.length)];
+    cloud.style.top = (5 + Math.random() * 30) + 'vh';
+    cloud.style.left = '-200px';
+    const dur = 6 + Math.random() * 6;
+    cloud.style.animationDuration = dur + 's';
+    cloud.style.animationDelay = (Math.random() * 3) + 's';
+    document.body.appendChild(cloud);
+    effectEls.push(cloud);
+    setTimeout(() => cloud.remove(), (dur + 3) * 1000);
+  }
+}
+
+// Initial draw
+initMaze(); initPlayer(); initGhosts();
+draw();
+</script>
+</body>
+</html>

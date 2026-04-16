@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="css/MyScratchStyles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body id="top">
+    <div class="page-wrapper">
+      <div class="header">
+        <h1 class="heading">My Travel Bucketlist</h1>
+        <nav>
+  <a href="http://127.0.0.1:5500/ai.html" target="_blank">Dumpling Dash Deluxe</a>
+  <a href="http://127.0.0.1:5500/index.html" target="_blank">Professional Resume</a>
+  
+</nav>
+        <p class="body-text">
+          Welcome to my travel inspiration page!
+          Buckle up for the greatest adventures soon to come!
+        </p>
+      </div>
+ 
+      <div class="content-section">
+        <h2 class="section-title">Oh the Places You'll Go!</h2>
+        <img src="assets/img/Europe Photo.jpg" alt="Summer in Europe Oranges" style="width: 300px;">
+      </div>
+
+      <div class="video-section">
+        <iframe width="560" height="315"
+          src="https://www.youtube.com/embed/e2wm_VRROvA"
+          title="YouTube video player"
+          frameborder="0"
+          allowfullscreen>
+        </iframe>
+        </div>
+
+        <div class="tableau-section">
+  <h2 class="section-title">Travel Data</h2>
+
+  <!-- Outer wrapper forces the viz to stay within page bounds -->
+  <div style="width: 100%; max-width: 100%; overflow: hidden;">
+    <div class='tableauPlaceholder' id='viz1776302740762' style='position: relative; width: 100%;'>
+      <noscript>
+        <a href='#'>
+          <img alt='Dashboard 1' src='https://public.tableau.com/static/images/CC/CCYMHJ45F/1_rss.png' style='border: none' />
+        </a>
+      </noscript>
+      <object class='tableauViz' style='display:none;'>
+        <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+        <param name='embed_code_version' value='3' />
+        <param name='path' value='shared/CCYMHJ45F' />
+        <param name='toolbar' value='yes' />
+        <param name='static_image' value='https://public.tableau.com/static/images/CC/CCYMHJ45F/1.png' />
+        <param name='animate_transition' value='yes' />
+        <param name='display_static_image' value='yes' />
+        <param name='display_spinner' value='yes' />
+        <param name='display_overlay' value='yes' />
+        <param name='display_count' value='yes' />
+        <param name='language' value='en-US' />
+      </object>
+    </div>
+  </div>
+
+  <script type='text/javascript'>
+    var divElement = document.getElementById('viz1776302740762');
+    var vizElement = divElement.getElementsByTagName('object')[0];
+
+    function resizeViz() {
+      var containerWidth = divElement.parentElement.offsetWidth;
+
+      // Always fill the full container width
+      vizElement.style.width = containerWidth + 'px';
+
+      // Height scales proportionally based on your dashboard's aspect ratio
+      // Your dashboard appears to be roughly 1000px wide x 900px tall — adjust if needed
+      vizElement.style.height = Math.round(containerWidth * 0.9) + 'px';
+    }
+
+    resizeViz();
+
+    // Also resize if the window changes (e.g. user resizes browser)
+    window.addEventListener('resize', resizeViz);
+
+    var scriptElement = document.createElement('script');
+    scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+    vizElement.parentNode.insertBefore(scriptElement, vizElement);
+  </script>
+</div>
+
+      <div class="lists-section">
+        <ul>
+          <li class="bold-item">Europe Cities
+            <ol>
+              <li>Paris</li>
+              <li>Rome</li>
+              <li>Barcelona</li>
+              <li>Milan</li>
+              <li>Venice</li>
+            </ol>
+          </li>
+
+          <img src="assets/img/AsiaPhoto.jpg" alt="Summer in Asia Cherry Blossoms" style="width: 300px;">
+
+          <li class="bold-item">Asia Cities
+            <ol>
+              <li>Tokyo</li>
+              <li>Seoul</li>
+              <li>Beijing</li>
+              <li>Xi'an</li>
+              <li>Shanghai</li>
+            </ol>
+          </li>
+        </ul>
+      </div>
+
+      <footer>
+      <a href="#top" style="display:inline-block; margin:20px; padding:10px 15px; background:#f0b6d5; color:#2f2f2f; text-decoration:none; border-radius:6px;">
+          Back to Top
+        </a>
+      </footer>
+
+    </div>
+  </body>
+</html>
