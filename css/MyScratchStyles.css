@@ -1,0 +1,113 @@
+body {
+  background-color: #f4e9bf;
+  text-align: center;
+  margin: 0;
+}
+
+.heading {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  color: #fe0661;
+  font-weight: 300;
+}
+
+.body-text {
+  font-family: Georgia, serif;
+  color: #020202;
+  line-height: 1.6;
+}
+
+.bold-item {
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.bold-item ol li {
+  font-weight: normal;
+  font-size: 16px;
+}
+
+img {
+  display: block;
+  margin: 20px auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 20px;
+}
+
+ul, ol {
+  text-align: left;
+}
+
+.section-title {
+  color: #fe0661;
+}
+
+
+.header {
+  padding: 2rem 1rem 1.5rem;
+}
+
+.content-section {
+  margin: 1.5rem auto;
+  max-width: 700px;
+}
+
+.video-section {
+  margin: 1.5rem auto;
+}
+
+iframe {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.lists-section {
+  display: inline-block;
+  text-align: left;
+  margin: 1rem auto 2rem;
+}
+
+footer {
+  margin-top: 1rem;
+  padding: 1rem 0 2rem;
+  border-top: 1px solid #e0c98a;
+}
+.page-wrapper {
+  max-width: 1100px;
+  margin: 10px auto;
+  border: 3px solid #fe0661;
+  border-radius: 10px;
+  padding: 1rem;
+  overflow: hidden;
+}
+.tableau-section {
+  margin: 1.5rem auto;
+  max-width: 800px;
+}
+
+.tableauPlaceholder,
+.tableauViz {
+  border-radius: 12px;
+  overflow: hidden;
+}
+a {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 15px;
+  background: #f0b6d5;
+  color: #2f2f2f;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.back-to-top {
+  display: inline-block;
+  margin: 20px;
+  padding: 10px 15px;
+  background: #f0b6d5;
+  color: #2f2f2f;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
